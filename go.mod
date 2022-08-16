@@ -2,7 +2,11 @@ module illum_sales_file_loader
 
 go 1.18
 
-require github.com/imroc/req/v3 v3.17.7
+require (
+	github.com/imroc/req/v3 v3.17.7
+	github.com/jlaffaye/ftp v0.0.0-20220630165035-11536801d1ff
+	github.com/joho/godotenv v1.4.0
+)
 
 require (
 	github.com/cheekybits/genny v1.0.0 // indirect
