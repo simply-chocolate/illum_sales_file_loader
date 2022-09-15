@@ -13,7 +13,7 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	err = utils.ReadFileFtp()
+	err = utils.CreateOrdersSap()
 	if err != nil {
 		log.Fatal(err)
 	}
