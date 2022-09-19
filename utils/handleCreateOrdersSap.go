@@ -14,7 +14,7 @@ func CreateOrdersSap() error {
 	for _, salesDay := range salesDays {
 		err := formatCSVLinesAndPostOrder(salesDay, ItemBarCodeCollection)
 		if err != nil {
-			return err
+			SendUnknownErrorToTeams(err)
 		}
 	}
 
