@@ -6,8 +6,16 @@ func CreateOrdersSap() error {
 		return err
 	}
 
+	ItemBarCodeCollection, err := GetItemsFromSap()
+	if err != nil {
+		return err
+	}
+
 	for _, salesDay := range salesDays {
-		formatCSVLinesToSapOrder(salesDay)
+		err := formatCSVLinesAndPostOrder(salesDay, ItemBarCodeCollection)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

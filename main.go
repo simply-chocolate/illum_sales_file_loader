@@ -15,7 +15,7 @@ func main() {
 
 	err = utils.CreateOrdersSap()
 	if err != nil {
-		log.Fatal(err)
+		utils.SendUnknownErrorToTeams(err)
 	}
 
 }

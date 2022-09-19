@@ -3,6 +3,7 @@ module illum_sales_file_loader
 go 1.18
 
 require (
+	github.com/atc0005/go-teams-notify/v2 v2.6.1
 	github.com/imroc/req/v3 v3.17.7
 	github.com/jlaffaye/ftp v0.0.0-20220630165035-11536801d1ff
 	github.com/joho/godotenv v1.4.0

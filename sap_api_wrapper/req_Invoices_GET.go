@@ -7,9 +7,9 @@ import (
 
 type SapApiGetInvoicesResult struct {
 	Value []struct {
-		DocNum   json.Number `json:"DocNum"`
-		DocDate  string      `json:"DocDate"`
-		OrderRef string      `json:"NumAtCard"`
+		DocNum     json.Number `json:"DocNum"`
+		DocDate    string      `json:"DocDate"`
+		BookingRef string      `json:"NumAtCard"`
 	} `json:"value"`
 	NextLink string `json:"odata.nextLink"`
 }

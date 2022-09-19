@@ -17,9 +17,10 @@ type SapApiPostOrderDocumentLine struct {
 	BarCode  string  `json:"BarCode"`
 	Quantity float64 `json:"Quantity"`
 	// Price, Discount and Tax
-	UnitPrice float64 `json:"UnitPrice"`
-	//LineTotal float64 `json:"LineTotal"`
-	VatGroup string `json:"VatGroup"` // S1
+	UnitPrice       float64 `json:"UnitPrice"`
+	LineTotal       float64 `json:"LineTotal"`
+	DiscountPercent float64 `json:"DiscountPercent"`
+	VatGroup        string  `json:"VatGroup"` // S1
 
 	UoMEntry int    `json:"UoMEntry"` // -1: Manuelt, 1: Pcs, 2: Case,
 	UoMCode  string `json:"UoMCode"`  // "Manuelt", "Pcs", "Case"
