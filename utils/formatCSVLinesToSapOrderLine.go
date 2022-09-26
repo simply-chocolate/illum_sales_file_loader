@@ -81,17 +81,17 @@ func formatCSVLinesAndPostOrder(csvLines string, ItemBarCodeCollection map[strin
 			return fmt.Errorf("error converting UomEntry to int for barCode: %v err: %v ", barCode, err)
 		}
 
-		unitPrice := (priceInclVat * 0.8) / quantity / 100
+		unitPrice := ((priceInclVat * 0.8) - (discountInclVat * 0.8)) / quantity / 100
 
 		sapOrderInstance.ItemLines = append(sapOrderInstance.ItemLines, sap_api_wrapper.SapApiPostOrderDocumentLine{
-			ItemCode:        itemBarCodeCollection["ItemCode"],
-			UoMEntry:        uoMEntry,
-			BarCode:         barCode,
-			Quantity:        quantity,
-			VatGroup:        "S1",
-			UnitPrice:       unitPrice,
-			DiscountPercent: discountInclVat / priceInclVat,
-			LineTotal:       (priceInclVat * 0.8) / 100,
+			ItemCode: itemBarCodeCollection["ItemCode"],
+			UoMEntry: uoMEntry,
+			BarCode:  barCode,
+			Quantity: quantity,
+			VatGroup: "S1",
+			//UnitPrice:       unitPrice,
+			//DiscountPercent: 0,
+			LineTotal: unitPrice * quantity,
 
 			WarehouseCode:   wareHouse,
 			AccountCode:     "12400",
