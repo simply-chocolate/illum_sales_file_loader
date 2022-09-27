@@ -8,6 +8,11 @@ import (
 	"time"
 )
 
+type BarcodeAndWarehouseData struct {
+	Quantity  float64
+	LineTotal float64
+}
+
 func formatCSVLinesAndPostOrder(csvLines string, ItemBarCodeCollection map[string]map[string]string) error {
 	salesDataLines := strings.Split(csvLines, "\n")
 	var sapOrderInstance sap_api_wrapper.SapApiOrderBody
@@ -47,12 +52,19 @@ func formatCSVLinesAndPostOrder(csvLines string, ItemBarCodeCollection map[strin
 
 	sapOrderInstance.OrderRef = orderRef
 
+	// We need to create a new map.
+	// Then for each line in the salesDataLines Slice, we need to check if this barcode exists in the map.
+	// (For the Magasin Script, but we can do it here as well) Then we check if the WhsCode exists in the map within the map
+	// In the case that it does exist, we will just retrieve the quantity, price and discount, and add the new values.
+	// Otherwise, we just append the line.
+
+	// TODO: Figure out why its not adding up the quantity and linetotal.
+
+	salesDataMap := make(map[string]map[string]BarcodeAndWarehouseData)
+
 	for _, salesDataLine := range salesDataLines {
 		salesData := strings.Split(salesDataLine, ",")
-		//date := salesData[0]
 		wareHouse := salesData[1]
-		//brand := salesData[2]
-		//timeOfDay := salesData[5]
 		barCode := salesData[7]
 
 		quantity, err := strconv.ParseFloat(salesData[8], 64)
@@ -71,35 +83,54 @@ func formatCSVLinesAndPostOrder(csvLines string, ItemBarCodeCollection map[strin
 			return fmt.Errorf("error parsing discount as float. err: %v", err)
 		}
 
-		itemBarCodeCollection, barCodeExists := ItemBarCodeCollection[barCode]
-		if !barCodeExists {
-			return fmt.Errorf("itemCode could not be found from barcode: %v", barCode)
-		}
-
-		uoMEntry, err := strconv.Atoi(itemBarCodeCollection["UoMEntry"])
-		if err != nil {
-			return fmt.Errorf("error converting UomEntry to int for barCode: %v err: %v ", barCode, err)
-		}
-
 		unitPrice := ((priceInclVat * 0.8) - (discountInclVat * 0.8)) / quantity / 100
+		lineTotal := unitPrice * quantity
 
-		sapOrderInstance.ItemLines = append(sapOrderInstance.ItemLines, sap_api_wrapper.SapApiPostOrderDocumentLine{
-			ItemCode: itemBarCodeCollection["ItemCode"],
-			UoMEntry: uoMEntry,
-			BarCode:  barCode,
-			Quantity: quantity,
-			VatGroup: "S1",
-			//UnitPrice:       unitPrice,
-			//DiscountPercent: 0,
-			LineTotal: unitPrice * quantity,
+		saleEntry, exists := salesDataMap[barCode][wareHouse]
+		if exists {
+			saleEntry.LineTotal = saleEntry.LineTotal + lineTotal
+			saleEntry.Quantity = saleEntry.Quantity + quantity
+			salesDataMap[barCode][wareHouse] = saleEntry
 
-			WarehouseCode:   wareHouse,
-			AccountCode:     "12400",
-			CostingCode:     wareHouse,
-			COGSAccountCode: FindCogsAccount(unitPrice),
-			COGSCostingCode: wareHouse,
-		})
+		} else {
+			var saleEntry BarcodeAndWarehouseData
+			saleEntry.LineTotal = lineTotal
+			saleEntry.Quantity = quantity
+			warehouseCodeMap := make(map[string]BarcodeAndWarehouseData)
 
+			warehouseCodeMap[wareHouse] = saleEntry
+			salesDataMap[barCode] = warehouseCodeMap
+		}
+	}
+
+	for barCode, entry := range salesDataMap {
+		for wareHouse, saleDataEntry := range entry {
+
+			itemBarCodeCollection, barCodeExists := ItemBarCodeCollection[barCode]
+			if !barCodeExists {
+				return fmt.Errorf("itemCode could not be found from barcode: %v", barCode)
+			}
+
+			uoMEntry, err := strconv.Atoi(itemBarCodeCollection["UoMEntry"])
+			if err != nil {
+				return fmt.Errorf("error converting UomEntry to int for barCode: %v err: %v ", barCode, err)
+			}
+
+			sapOrderInstance.ItemLines = append(sapOrderInstance.ItemLines, sap_api_wrapper.SapApiPostOrderDocumentLine{
+				ItemCode:  itemBarCodeCollection["ItemCode"],
+				UoMEntry:  uoMEntry,
+				BarCode:   barCode,
+				Quantity:  saleDataEntry.Quantity,
+				VatGroup:  "S1",
+				LineTotal: saleDataEntry.LineTotal,
+
+				WarehouseCode:   wareHouse,
+				AccountCode:     "12400",
+				CostingCode:     wareHouse,
+				COGSAccountCode: FindCogsAccount(saleDataEntry.LineTotal),
+				COGSCostingCode: wareHouse,
+			})
+		}
 	}
 
 	err = sap_api_wrapper.SapApiPostOrder(sapOrderInstance)
