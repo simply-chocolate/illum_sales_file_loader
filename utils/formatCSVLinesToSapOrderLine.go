@@ -37,7 +37,6 @@ func formatCSVLinesAndPostOrder(csvLines string, ItemBarCodeCollection map[strin
 		return fmt.Errorf("something went wrong getting the orders %v. error: %v", headerData, err)
 	}
 	if _, exists := sapOrders[orderRef]; exists {
-		fmt.Println("order exists")
 		return nil
 	}
 
