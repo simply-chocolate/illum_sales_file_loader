@@ -132,7 +132,7 @@ func formatCSVLinesAndPostOrder(csvLines string, ItemBarCodeCollection map[strin
 		}
 	}
 
-	err = sap_api_wrapper.SapApiPostOrder(sapOrderInstance)
+	err = sap_api_wrapper.SapApiPostOrder(sapOrderInstance, 1)
 	if err != nil {
 		return fmt.Errorf("error posting order to SAP header: %v. Error: %v", headerData, err)
 	}

@@ -2,6 +2,7 @@ package sap_api_wrapper
 
 import (
 	"fmt"
+	"time"
 )
 
 type SapApiOrderBody struct {
@@ -33,13 +34,13 @@ type SapApiPostOrderDocumentLine struct {
 	COGSAccountCode string // 22200
 }
 
-func SapApiPostOrder(OrderBody SapApiOrderBody) error {
+func SapApiPostOrder(OrderBody SapApiOrderBody, count int) error {
 	client, err := GetSapApiAuthClient()
 	if err != nil {
 		fmt.Println("Error getting an authenticated client")
 		return err
 	}
-	_, err = client.
+	resp, err := client.
 		//DevMode().
 		R().
 		SetResult(SapApiGetOrdersResult{}).
@@ -54,6 +55,22 @@ func SapApiPostOrder(OrderBody SapApiOrderBody) error {
 	if err != nil {
 		fmt.Println(err)
 		return err
+	}
+
+	if resp.IsError() {
+		orderExists, err := CheckOrderExistsSap(OrderBody.OrderRef)
+		if err != nil {
+			return fmt.Errorf("error checking if order exists after failing to post order to SAP. Order.nr: %v", OrderBody.OrderRef)
+		}
+
+		if orderExists {
+			return nil
+		} else if count > 200 {
+			return fmt.Errorf("error posting order %v to sap. Tried %v times and still got nowhere", OrderBody.OrderRef, count)
+		} else {
+			time.Sleep(100 * time.Millisecond)
+			SapApiPostOrder(OrderBody, count+1)
+		}
 	}
 
 	return nil
