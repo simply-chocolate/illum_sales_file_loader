@@ -24,6 +24,7 @@ func formatCSVLinesAndPostOrder(csvLines string, ItemBarCodeCollection map[strin
 	}
 
 	bookingDate := dateOfSale.Format("2006-01-02")
+
 	sapOrderInstance.DocDate = bookingDate
 	sapOrderInstance.DocDueDate = bookingDate
 	sapOrderInstance.CustomerCode = "100068"
