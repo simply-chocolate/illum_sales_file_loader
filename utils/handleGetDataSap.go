@@ -28,7 +28,7 @@ func GetInvoicesFromSap(bookingRef string) (map[string]string, error) {
 func GetOrdersFromSap(bookingRef string) (map[string]string, error) {
 	resp, err := sap_api_wrapper.SapApiGetOrders_AllPages(sap_api_wrapper.SapApiQueryParams{
 		Select:  []string{"DocNum", "DocDate", "NumAtCard"},
-		Filter:  fmt.Sprintf("startswith(NumAtCard, '%v') and CardCode eq '100068'", bookingRef),
+		Filter:  fmt.Sprintf("startswith(NumAtCard, '%v') and CardCode eq '100068' and Cancelled eq 'tNO'", bookingRef),
 		OrderBy: []string{"DocNum desc"},
 	})
 	if err != nil {

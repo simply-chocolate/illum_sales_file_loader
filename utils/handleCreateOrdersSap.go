@@ -1,7 +1,12 @@
 package utils
 
+import (
+	"fmt"
+	"illum_sales_file_loader/ftp_handler"
+)
+
 func CreateOrdersSap() error {
-	salesDays, err := GetAllCSVFilesFromFTP()
+	data, err := GetAllCSVFilesFromFTP()
 	if err != nil {
 		return err
 	}
@@ -11,10 +16,16 @@ func CreateOrdersSap() error {
 		return err
 	}
 
-	for _, salesDay := range salesDays {
-		err := formatCSVLinesAndPostOrder(salesDay, ItemBarCodeCollection)
+	for _, salesDay := range data {
+		err := formatCSVLinesAndPostOrder(salesDay.salesDataString, ItemBarCodeCollection)
 		if err != nil {
 			SendUnknownErrorToTeams(err)
+			continue
+		}
+
+		err = ftp_handler.DeleteFtpFile(salesDay.fileName)
+		if err != nil {
+			SendUnknownErrorToTeams(fmt.Errorf("error deleting file %s from FTP. Error: %v", salesDay.fileName, err))
 		}
 	}
 

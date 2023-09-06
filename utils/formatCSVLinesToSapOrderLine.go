@@ -38,7 +38,7 @@ func formatCSVLinesAndPostOrder(csvLines string, ItemBarCodeCollection map[strin
 		return fmt.Errorf("something went wrong getting the orders %v. error: %v", headerData, err)
 	}
 	if _, exists := sapOrders[orderRef]; exists {
-		return nil
+		return fmt.Errorf("order already exists in SAP. OrderRef: %v", orderRef)
 	}
 
 	sapInvoices, err := GetInvoicesFromSap(orderRef)
@@ -46,19 +46,10 @@ func formatCSVLinesAndPostOrder(csvLines string, ItemBarCodeCollection map[strin
 		return fmt.Errorf("something went wrong getting the orders %v. error: %v", headerData, err)
 	}
 	if _, exists := sapInvoices[orderRef]; exists {
-		fmt.Println("invoice exists")
-		return nil
+		return fmt.Errorf("invoice already exists in SAP. OrderRef: %v", orderRef)
 	}
 
 	sapOrderInstance.OrderRef = orderRef
-
-	// We need to create a new map.
-	// Then for each line in the salesDataLines Slice, we need to check if this barcode exists in the map.
-	// (For the Magasin Script, but we can do it here as well) Then we check if the WhsCode exists in the map within the map
-	// In the case that it does exist, we will just retrieve the quantity, price and discount, and add the new values.
-	// Otherwise, we just append the line.
-
-	// TODO: Figure out why its not adding up the quantity and linetotal.
 
 	salesDataMap := make(map[string]map[string]BarcodeAndWarehouseData)
 
@@ -133,10 +124,12 @@ func formatCSVLinesAndPostOrder(csvLines string, ItemBarCodeCollection map[strin
 		}
 	}
 
-	err = sap_api_wrapper.SapApiPostOrder(sapOrderInstance, 1)
+	statusCode, err := sap_api_wrapper.SapApiPostOrder(sapOrderInstance, 1)
 	if err != nil {
 		return fmt.Errorf("error posting order to SAP header: %v. Error: %v", headerData, err)
 	}
-
+	if statusCode < 200 && statusCode > 299 {
+		return fmt.Errorf("error posting order to SAP header: %v. StatusCode: %v", headerData, statusCode)
+	}
 	return nil
 }

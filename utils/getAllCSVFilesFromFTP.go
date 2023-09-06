@@ -4,22 +4,32 @@ import (
 	"illum_sales_file_loader/ftp_handler"
 )
 
-func GetAllCSVFilesFromFTP() ([]string, error) {
+type ftpData struct {
+	fileName        string
+	salesDataString string
+}
+
+func GetAllCSVFilesFromFTP() ([]ftpData, error) {
 	fileList, err := ftp_handler.GetFtpFileList()
 	if err != nil {
-		return []string{}, err
+		return []ftpData{}, err
 	}
 
-	salesDataString := []string{}
+	ftpDataList := []ftpData{}
 
 	for _, file := range fileList {
 		salesData, err := ftp_handler.GetFtpFile(file.Name)
 		if err != nil {
-			return salesDataString, err
+			return []ftpData{}, err
 		}
 
-		salesDataString = append(salesDataString, salesData)
+		data := ftpData{
+			fileName:        file.Name,
+			salesDataString: salesData,
+		}
+		ftpDataList = append(ftpDataList, data)
+
 	}
 
-	return salesDataString, nil
+	return ftpDataList, nil
 }

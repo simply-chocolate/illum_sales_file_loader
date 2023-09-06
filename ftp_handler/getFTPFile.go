@@ -2,7 +2,7 @@ package ftp_handler
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 )
 
 // TODO: We need to either delete the file from the server as the last thing. So when we get a positive feedback value from SAP, we send the delete request to the FTP.
@@ -19,7 +19,7 @@ func GetFtpFile(fileName string) (string, error) {
 	}
 	defer csvFile.Close()
 
-	csvAsBuffer, err := ioutil.ReadAll(csvFile)
+	csvAsBuffer, err := io.ReadAll(csvFile)
 
 	if err != nil {
 		return "", fmt.Errorf("error reading the file %s. error: %v", fileName, err)
