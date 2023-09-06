@@ -33,7 +33,7 @@ func formatCSVLinesAndPostOrder(csvLines string, ItemBarCodeCollection map[strin
 		orderRef = orderRef[:100]
 	}
 
-	sapOrders, err := GetOrdersFromSap(bookingDate)
+	sapOrders, err := GetOrdersFromSap(orderRef)
 	if err != nil {
 		return fmt.Errorf("something went wrong getting the orders %v. error: %v", headerData, err)
 	}
@@ -41,7 +41,7 @@ func formatCSVLinesAndPostOrder(csvLines string, ItemBarCodeCollection map[strin
 		return nil
 	}
 
-	sapInvoices, err := GetInvoicesFromSap(bookingDate)
+	sapInvoices, err := GetInvoicesFromSap(orderRef)
 	if err != nil {
 		return fmt.Errorf("something went wrong getting the orders %v. error: %v", headerData, err)
 	}
@@ -69,18 +69,18 @@ func formatCSVLinesAndPostOrder(csvLines string, ItemBarCodeCollection map[strin
 
 		quantity, err := strconv.ParseFloat(salesData[8], 64)
 		if err != nil {
-			return fmt.Errorf("error parsing quantity as float. err: %v", err)
+			return fmt.Errorf("error parsing quantity as float.\n OrderRef: %v\nerr: %v", orderRef, err)
 		}
 
 		priceInclVat, err := strconv.ParseFloat(salesData[9], 64)
 		if err != nil {
-			return fmt.Errorf("error parsing price as float. err: %v", err)
+			return fmt.Errorf("error parsing price as float.\n OrderRef: %v\nerr: %v", orderRef, err)
 		}
 
 		discountInclVat, err := strconv.ParseFloat(strings.TrimSpace(salesData[10]), 64)
 		if err != nil {
 			fmt.Println(salesData[10])
-			return fmt.Errorf("error parsing discount as float. err: %v", err)
+			return fmt.Errorf("error parsing discount as float.\n OrderRef: %v\nerr: %v", orderRef, err)
 		}
 
 		unitPrice := ((priceInclVat * 0.8) - (discountInclVat * 0.8)) / quantity / 100
@@ -108,12 +108,12 @@ func formatCSVLinesAndPostOrder(csvLines string, ItemBarCodeCollection map[strin
 
 			itemBarCodeCollection, barCodeExists := ItemBarCodeCollection[barCode]
 			if !barCodeExists {
-				return fmt.Errorf("itemCode could not be found from barcode: %v", barCode)
+				return fmt.Errorf("itemCode could not be found from barcode: %v\nOrderRef: %v", barCode, orderRef)
 			}
 
 			uoMEntry, err := strconv.Atoi(itemBarCodeCollection["UoMEntry"])
 			if err != nil {
-				return fmt.Errorf("error converting UomEntry to int for barCode: %v err: %v ", barCode, err)
+				return fmt.Errorf("error converting UomEntry to int for barCode: %v\n OrderRef:%v\n err: %v", barCode, orderRef, err)
 			}
 
 			sapOrderInstance.ItemLines = append(sapOrderInstance.ItemLines, sap_api_wrapper.SapApiPostOrderDocumentLine{

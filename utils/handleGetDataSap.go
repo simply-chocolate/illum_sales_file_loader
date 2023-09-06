@@ -6,10 +6,10 @@ import (
 	"strconv"
 )
 
-func GetInvoicesFromSap(date string) (map[string]string, error) {
+func GetInvoicesFromSap(bookingRef string) (map[string]string, error) {
 	resp, err := sap_api_wrapper.SapApiGetInvoices_AllPages(sap_api_wrapper.SapApiQueryParams{
 		Select:  []string{"DocNum", "DocDate", "NumAtCard"},
-		Filter:  fmt.Sprintf("DocDate eq %v and CardCode eq '100068'", date),
+		Filter:  fmt.Sprintf("startswith(NumAtCard, '%v') and CardCode eq '100068'", bookingRef),
 		OrderBy: []string{"DocNum desc"},
 	})
 	if err != nil {
@@ -25,10 +25,10 @@ func GetInvoicesFromSap(date string) (map[string]string, error) {
 	return Invoices, nil
 }
 
-func GetOrdersFromSap(date string) (map[string]string, error) {
+func GetOrdersFromSap(bookingRef string) (map[string]string, error) {
 	resp, err := sap_api_wrapper.SapApiGetOrders_AllPages(sap_api_wrapper.SapApiQueryParams{
 		Select:  []string{"DocNum", "DocDate", "NumAtCard"},
-		Filter:  fmt.Sprintf("DocDate eq %v and CardCode eq '100068'", date),
+		Filter:  fmt.Sprintf("startswith(NumAtCard, '%v') and CardCode eq '100068'", bookingRef),
 		OrderBy: []string{"DocNum desc"},
 	})
 	if err != nil {
