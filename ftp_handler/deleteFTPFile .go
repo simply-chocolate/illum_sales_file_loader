@@ -6,7 +6,6 @@ import (
 
 // TODO: We need to either delete the file from the server as the last thing. So when we get a positive feedback value from SAP, we send the delete request to the FTP.
 func DeleteFtpFile(fileName string) error {
-	fmt.Println("Deleting file from FTP")
 	ftpClient, err := getFtpClient()
 	if err != nil {
 		return err
