@@ -11,6 +11,7 @@ func main() {
 	utils.LoadEnv()
 
 	fmt.Printf("%v: Started the Script \n", time.Now().UTC().Format("2006-01-02 15:04:05"))
+	utils.SendUnknownErrorToTeams(fmt.Errorf("Started the Script"))
 	err := utils.CreateOrdersSap()
 	if err != nil {
 		utils.SendUnknownErrorToTeams(err)
